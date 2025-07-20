@@ -127,7 +127,7 @@ The chatbot will:
 - Generate responses based only on that information
 - Inform you if the answer isn't in the reference material
 
-## 🔍 How It Works
+##  How It Works
 
 ### RAG Pipeline
 
@@ -158,7 +158,7 @@ The chatbot will:
 - The quality of responses depends on the content and coverage of the medical reference document
 - For production use, consider implementing additional security measures and user authentication
 
-## 🔒 Privacy and Security
+##  Privacy and Security
 
 - All processing happens locally except for API calls to Google's Gemini
 - No user data or queries are stored permanently
