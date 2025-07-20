@@ -1,0 +1,21 @@
+# Project dependencies
+
+# Core libraries
+streamlit>=1.28.0
+python-dotenv>=1.0.0
+
+# Google Generative AI
+google-genai>=1.0.0
+# Keeping langchain-google-genai for compatibility
+langchain-google-genai>=0.0.5
+
+# Document processing
+langchain>=0.0.335
+pypdf2>=3.0.0
+pdfplumber>=0.10.0
+
+# Vector database
+chromadb>=0.4.18
+
+# PDF processing
+langchain[pdf]>=0.0.335
