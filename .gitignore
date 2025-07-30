@@ -29,8 +29,8 @@ env/
 # Database files
 *.sqlite3
 
-# Chroma DB files
-data/chroma_db/
+# Chroma DB files (commented out to allow upload to Hugging Face)
+# data/chroma_db/
 
 # Log files
 *.log
