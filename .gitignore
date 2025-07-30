@@ -26,8 +26,8 @@ env/
 .env.local
 .env
 
-# Database files
-*.sqlite3
+# Database files (allowing ChromaDB SQLite files for deployment)
+# *.sqlite3
 
 # Chroma DB files (commented out to allow upload to Hugging Face)
 # data/chroma_db/

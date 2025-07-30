@@ -57,11 +57,27 @@ def load_resources():
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
         
+        st.write("Loading embeddings...")
         embeddings = create_embeddings()
+        
+        st.write("Loading vector store...")
         vectordb = load_vector_store(embeddings, persist_directory)
+        
+        # Test vector store
+        try:
+            collection_count = vectordb._collection.count()
+            st.success(f"Vector store loaded successfully with {collection_count} documents")
+        except Exception as e:
+            st.warning(f"Could not get collection count: {e}")
+        
         return embeddings, vectordb
     except Exception as e:
         st.error(f"Error loading resources: {e}")
+        st.write("Debug info:")
+        st.write(f"Persist directory exists: {os.path.exists(persist_directory)}")
+        if os.path.exists(persist_directory):
+            files = os.listdir(persist_directory)
+            st.write(f"Files in persist directory: {files}")
         st.stop()
 
 embeddings, vectordb = load_resources()

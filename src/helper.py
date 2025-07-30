@@ -114,10 +114,55 @@ def load_vector_store(embeddings: Any, persist_directory: str) -> Chroma:
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
     
-    vectordb = Chroma(
-        persist_directory=persist_directory,
-        embedding_function=embeddings
-    )
+    # Check if the persist directory exists and has content
+    if not os.path.exists(persist_directory):
+        raise FileNotFoundError(f"Vector store directory not found: {persist_directory}")
+    
+    # Check for essential ChromaDB files
+    chroma_db_file = os.path.join(persist_directory, "chroma.sqlite3")
+    if not os.path.exists(chroma_db_file):
+        raise FileNotFoundError(f"ChromaDB file not found: {chroma_db_file}")
+    
+    try:
+        # Try to load with the new approach first
+        vectordb = Chroma(
+            persist_directory=persist_directory,
+            embedding_function=embeddings,
+            collection_name="medical_documents"  # Try with explicit collection name
+        )
+        
+        # Test if the collection has documents
+        collection_count = vectordb._collection.count()
+        if collection_count == 0:
+            # Try without collection name
+            vectordb = Chroma(
+                persist_directory=persist_directory,
+                embedding_function=embeddings
+            )
+            collection_count = vectordb._collection.count()
+            
+        print(f"Vector store loaded successfully with {collection_count} documents")
+        return vectordb
+        
+    except Exception as e:
+        print(f"Error loading vector store: {e}")
+        # Fallback: try to recreate from the PDF if it exists
+        pdf_path = os.path.join("data", "medical_book.pdf")
+        if os.path.exists(pdf_path):
+            print("Attempting to recreate vector store from PDF...")
+            return recreate_vector_store_from_pdf(pdf_path, embeddings, persist_directory)
+        else:
+            raise Exception(f"Failed to load vector store and PDF not found: {e}")
+
+def recreate_vector_store_from_pdf(pdf_path: str, embeddings: Any, persist_directory: str) -> Chroma:
+    """
+    Recreate vector store from PDF file as fallback.
+    """
+    print("Recreating vector store from PDF...")
+    documents = load_pdf(pdf_path)
+    chunks = split_documents(documents)
+    print(f"Creating vector store with {len(chunks)} chunks...")
+    vectordb = create_vector_store(chunks, embeddings, persist_directory)
     return vectordb
 
 def retrieve_relevant_chunks(query: str, vectordb: Chroma, k: int = 4) -> List[str]:
