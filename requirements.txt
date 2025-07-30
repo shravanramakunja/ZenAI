@@ -5,6 +5,7 @@ streamlit>=1.28.0
 python-dotenv>=1.0.0
 
 # Google Generative AI
+google-generativeai>=0.3.0
 google-genai>=1.0.0
 # Keeping langchain-google-genai for compatibility
 langchain-google-genai>=0.0.5
