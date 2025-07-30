@@ -1,6 +1,7 @@
 # helper.py - Functions for PDF processing, chunking, embedding, and retrieval
 
 import os
+import asyncio
 from typing import List, Dict, Any
 import google.generativeai as genai
 from langchain_community.document_loaders import PyPDFLoader
@@ -58,6 +59,15 @@ def create_embeddings() -> GoogleGenerativeAIEmbeddings:
     Returns:
         GoogleGenerativeAIEmbeddings object
     """
+    # Ensure event loop is available
+    try:
+        loop = asyncio.get_event_loop()
+        if loop.is_closed():
+            raise RuntimeError("Event loop is closed")
+    except RuntimeError:
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+    
     embeddings = GoogleGenerativeAIEmbeddings(
         model="models/embedding-001",
         google_api_key=os.getenv("GOOGLE_API_KEY")
@@ -95,6 +105,15 @@ def load_vector_store(embeddings: Any, persist_directory: str) -> Chroma:
     Returns:
         Chroma vector store
     """
+    # Ensure event loop is available
+    try:
+        loop = asyncio.get_event_loop()
+        if loop.is_closed():
+            raise RuntimeError("Event loop is closed")
+    except RuntimeError:
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+    
     vectordb = Chroma(
         persist_directory=persist_directory,
         embedding_function=embeddings

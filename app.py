@@ -2,6 +2,7 @@
 
 import os
 import sys
+import asyncio
 import streamlit as st
 import google.genai as genai
 from dotenv import load_dotenv
@@ -10,6 +11,9 @@ from src.prompt import get_system_prompt, get_query_prompt
 
 # Load environment variables
 load_dotenv()
+
+# Set environment variable to suppress asyncio warnings
+os.environ["CHROMA_DISABLE_ASYNCIO_CHECK"] = "1"
 
 # Configure Google Generative AI with API key
 api_key = os.getenv("GOOGLE_API_KEY")
@@ -45,6 +49,14 @@ if "messages" not in st.session_state:
 @st.cache_resource
 def load_resources():
     try:
+        # Set event loop policy for Windows
+        if os.name == 'nt':  # Windows
+            asyncio.set_event_loop_policy(asyncio.WindowsProactorEventLoopPolicy())
+        
+        # Create new event loop for this thread
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        
         embeddings = create_embeddings()
         vectordb = load_vector_store(embeddings, persist_directory)
         return embeddings, vectordb
@@ -116,7 +128,7 @@ def generate_response(query):
     return response.text
 
 # App title and description
-st.title("Zen AI ")
+st.title("Zen AI")
 st.markdown(
     """
     Ask medical questions and get answers based on the medical reference material.
@@ -169,9 +181,11 @@ with st.sidebar:
     st.markdown(
         """
         **Sample Questions:**
-        - What are the symptoms of diabetes?
-        - How is hypertension diagnosed?
-        - What treatments are available for asthma?
-        - What are the risk factors for heart disease?
+        - What causes diabetes and how does insulin work?
+        - How is kidney failure diagnosed?
+        - What are blood sugar tests used for?
+        - What is atherosclerosis and how does it affect arteries?
+        - How are antidiabetic drugs used in treatment?
+        - What causes anemia and what are its symptoms?
         """
     )
