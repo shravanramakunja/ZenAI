@@ -66,6 +66,13 @@ def load_resources():
 
 embeddings, vectordb = load_resources()
 
+# Test vector store functionality
+try:
+    test_chunks = retrieve_relevant_chunks("diabetes", vectordb, k=2)
+    st.write(f"Vector store test: Found {len(test_chunks)} chunks for 'diabetes'")
+except Exception as e:
+    st.error(f"Vector store test failed: {e}")
+
 # Initialize Gemini model
 @st.cache_resource
 def load_model():
@@ -82,6 +89,14 @@ model = load_model()
 def generate_response(query):
     # Retrieve relevant chunks from the vector store
     relevant_chunks = retrieve_relevant_chunks(query, vectordb, k=4)
+    
+    # Debug: Show what chunks were retrieved
+    st.write(f"Debug: Retrieved {len(relevant_chunks)} chunks")
+    if relevant_chunks:
+        st.write("Debug: Sample chunk preview:")
+        st.write(relevant_chunks[0][:200] + "..." if len(relevant_chunks[0]) > 200 else relevant_chunks[0])
+    else:
+        st.write("Debug: No chunks retrieved!")
     
     # Join the chunks into a single context string
     context = "\n\n".join(relevant_chunks)
