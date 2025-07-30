@@ -31,65 +31,6 @@ jobs:
         HF_TOKEN: ${{ secrets.HF_TOKEN }}
         GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
       run: |
-        # First create the properly formatted README.md
-        cat > README.md << 'EOF'
----
-title: ZenAI Medical Chatbot
-emoji: 🏥
-colorFrom: blue
-colorTo: green
-sdk: streamlit
-sdk_version: 1.47.1
-app_file: app.py
-pinned: false
-license: mit
----
-
-# ZenAI Medical Chatbot 🏥
-
-An intelligent medical assistant powered by Google Gemini 2.0 Flash and advanced RAG (Retrieval-Augmented Generation) technology that provides accurate, document-grounded answers to medical questions using a comprehensive internal medical reference.
-
-## Features
-
-- 🤖 **AI-Powered Responses**: Utilizes Google Gemini 2.0 Flash for accurate medical information
-- 📚 **Knowledge Base**: Trained on comprehensive medical literature (637 pages, 3,426 chunks)
-- 🔍 **RAG Technology**: Retrieves relevant context for precise answers
-- 💬 **Interactive Chat**: User-friendly Streamlit interface
-- ⚡ **Real-time Responses**: Fast and efficient query processing
-
-## Sample Questions
-
-Try asking about:
-- "What are the symptoms of diabetes?"
-- "How is hypertension diagnosed?"
-- "What are the side effects of aspirin?"
-- "Explain the cardiovascular system"
-- "What is the treatment for pneumonia?"
-
-## How It Works
-
-1. **Document Processing**: Medical texts are processed into semantic chunks
-2. **Vector Storage**: Content is stored in ChromaDB for efficient retrieval
-3. **Query Processing**: User questions are matched with relevant medical content
-4. **AI Generation**: Gemini 2.0 Flash generates contextually accurate responses
-
-## Technology Stack
-
-- **Frontend**: Streamlit
-- **LLM**: Google Gemini 2.0 Flash
-- **Vector Database**: ChromaDB
-- **Embeddings**: Google Generative AI Embeddings
-- **Framework**: LangChain
-
-## Disclaimer
-
-This chatbot is for educational and informational purposes only. Always consult with qualified healthcare professionals for medical advice, diagnosis, or treatment.
-
----
-
-*Deployed on Hugging Face Spaces 🤗*
-EOF
-
         python -c "
         import os
         from huggingface_hub import HfApi, create_repo
@@ -113,62 +54,22 @@ EOF
         except Exception as e:
             print(f'Repository creation: {e}')
         
-        # Upload README.md FIRST with proper configuration
+        # Upload all files using upload_folder (simpler approach)
         try:
-            api.upload_file(
-                path_or_fileobj='README.md',
-                path_in_repo='README.md',
-                repo_id=repo_id,
-                repo_type='space',
-                token=os.environ['HF_TOKEN']
-            )
-            print('README.md with configuration uploaded first')
-        except Exception as e:
-            print(f'README upload error: {e}')
-        
-        # Upload other files
-        try:
-            # Upload main application files
-            api.upload_file(
-                path_or_fileobj='app.py',
-                path_in_repo='app.py',
-                repo_id=repo_id,
-                repo_type='space',
-                token=os.environ['HF_TOKEN']
-            )
-            
-            api.upload_file(
-                path_or_fileobj='requirements.txt',
-                path_in_repo='requirements.txt',
-                repo_id=repo_id,
-                repo_type='space',
-                token=os.environ['HF_TOKEN']
-            )
-            
-            # Upload src directory
             api.upload_folder(
-                folder_path='src',
+                folder_path='.',
                 repo_id=repo_id,
                 repo_type='space',
-                token=os.environ['HF_TOKEN']
+                token=os.environ['HF_TOKEN'],
+                ignore_patterns=['.git', '.github', '.env', '*.log', '__pycache__', '.gitignore']
             )
-            
-            # Upload data directory (without .env sensitive files)
-            api.upload_folder(
-                folder_path='data',
-                repo_id=repo_id,
-                repo_type='space',
-                token=os.environ['HF_TOKEN']
-            )
-            
-            print('Files uploaded successfully')
+            print('All files uploaded successfully')
             
         except Exception as e:
             print(f'Upload error: {e}')
         
         # Set environment variables for the space
         try:
-            from huggingface_hub import SpaceVariable
             api.add_space_secret(
                 repo_id=repo_id,
                 key='GOOGLE_API_KEY',
@@ -177,27 +78,8 @@ EOF
             )
             print('Environment variables configured successfully')
         except Exception as e:
-            print(f'Environment variable setup (trying alternative method): {e}')
-            # Alternative method if add_space_secret doesn't work
-            try:
-                import requests
-                headers = {'Authorization': f'Bearer {os.environ[\"HF_TOKEN\"]}'}
-                data = {
-                    'key': 'GOOGLE_API_KEY',
-                    'value': os.environ['GOOGLE_API_KEY']
-                }
-                response = requests.post(
-                    f'https://huggingface.co/api/spaces/{repo_id}/secrets',
-                    headers=headers,
-                    json=data
-                )
-                if response.status_code == 200:
-                    print('Environment variables set via API')
-                else:
-                    print(f'API response: {response.status_code}')
-            except Exception as e2:
-                print(f'Alternative method failed: {e2}')
-                print('Please manually set GOOGLE_API_KEY in Space settings')
+            print(f'Environment variable setup: {e}')
+            print('Please manually set GOOGLE_API_KEY in Space settings')
         "
     
     - name: Wait for Space to build
