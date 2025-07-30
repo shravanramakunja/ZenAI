@@ -1,6 +1,18 @@
-# ZEN AI (RAG-based)
+---
+title: ZenAI Medical Chatbot
+emoji: 🏥
+colorFrom: blue
+colorTo: green
+sdk: streamlit
+sdk_version: 1.47.1
+app_file: app.py
+pinned: false
+license: mit
+---
 
-A domain-specific medical chatbot that uses Retrieval-Augmented Generation (RAG) to provide accurate, document-grounded answers to medical questions using a custom internal medical reference document.
+# ZenAI Medical Chatbot 🏥
+
+An intelligent medical assistant powered by Google Gemini 2.0 Flash and advanced RAG (Retrieval-Augmented Generation) technology that provides accurate, document-grounded answers to medical questions using a comprehensive internal medical reference.
 
 ## Project Overview
 
