@@ -31,76 +31,7 @@ jobs:
         HF_TOKEN: ${{ secrets.HF_TOKEN }}
         GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
       run: |
-        python -c "
-        import os
-        from huggingface_hub import HfApi, create_repo
-        
-        # Initialize HF API
-        api = HfApi()
-        
-        # Repository details
-        repo_id = 'shravanramakunja/ZenAI'
-        
-        try:
-            # Create repository if it doesn't exist
-            create_repo(
-                repo_id=repo_id,
-                token=os.environ['HF_TOKEN'],
-                repo_type='space',
-                space_sdk='streamlit',
-                exist_ok=True
-            )
-            print(f'Repository {repo_id} created/verified successfully')
-        except Exception as e:
-            print(f'Repository creation: {e}')
-        
-        # Upload files
-        try:
-            # Upload main application files
-            api.upload_file(
-                path_or_fileobj='app.py',
-                path_in_repo='app.py',
-                repo_id=repo_id,
-                repo_type='space',
-                token=os.environ['HF_TOKEN']
-            )
-            
-            api.upload_file(
-                path_or_fileobj='requirements.txt',
-                path_in_repo='requirements.txt',
-                repo_id=repo_id,
-                repo_type='space',
-                token=os.environ['HF_TOKEN']
-            )
-            
-            # Upload src directory
-            api.upload_folder(
-                folder_path='src',
-                repo_id=repo_id,
-                repo_type='space',
-                token=os.environ['HF_TOKEN']
-            )
-            
-            # Upload data directory (without .env sensitive files)
-            api.upload_folder(
-                folder_path='data',
-                repo_id=repo_id,
-                repo_type='space',
-                token=os.environ['HF_TOKEN']
-            )
-            
-            print('Files uploaded successfully')
-            
-        except Exception as e:
-            print(f'Upload error: {e}')
-        "
-    
-    - name: Create Hugging Face Space configuration
-      env:
-        HF_TOKEN: ${{ secrets.HF_TOKEN }}
-        GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
-      run: |
-        # Create README.md with proper Hugging Face configuration
+        # First create the properly formatted README.md
         cat > README.md << 'EOF'
 ---
 title: ZenAI Medical Chatbot
@@ -158,23 +89,82 @@ This chatbot is for educational and informational purposes only. Always consult 
 
 *Deployed on Hugging Face Spaces 🤗*
 EOF
-        
-        # Upload the properly formatted README.md
+
         python -c "
         import os
-        from huggingface_hub import HfApi
+        from huggingface_hub import HfApi, create_repo
         
+        # Initialize HF API
         api = HfApi()
+        
+        # Repository details
         repo_id = 'shravanramakunja/ZenAI'
         
-        # Upload README.md
-        api.upload_file(
-            path_or_fileobj='README.md',
-            path_in_repo='README.md',
-            repo_id=repo_id,
-            repo_type='space',
-            token=os.environ['HF_TOKEN']
-        )
+        try:
+            # Create repository if it doesn't exist
+            create_repo(
+                repo_id=repo_id,
+                token=os.environ['HF_TOKEN'],
+                repo_type='space',
+                space_sdk='streamlit',
+                exist_ok=True
+            )
+            print(f'Repository {repo_id} created/verified successfully')
+        except Exception as e:
+            print(f'Repository creation: {e}')
+        
+        # Upload README.md FIRST with proper configuration
+        try:
+            api.upload_file(
+                path_or_fileobj='README.md',
+                path_in_repo='README.md',
+                repo_id=repo_id,
+                repo_type='space',
+                token=os.environ['HF_TOKEN']
+            )
+            print('README.md with configuration uploaded first')
+        except Exception as e:
+            print(f'README upload error: {e}')
+        
+        # Upload other files
+        try:
+            # Upload main application files
+            api.upload_file(
+                path_or_fileobj='app.py',
+                path_in_repo='app.py',
+                repo_id=repo_id,
+                repo_type='space',
+                token=os.environ['HF_TOKEN']
+            )
+            
+            api.upload_file(
+                path_or_fileobj='requirements.txt',
+                path_in_repo='requirements.txt',
+                repo_id=repo_id,
+                repo_type='space',
+                token=os.environ['HF_TOKEN']
+            )
+            
+            # Upload src directory
+            api.upload_folder(
+                folder_path='src',
+                repo_id=repo_id,
+                repo_type='space',
+                token=os.environ['HF_TOKEN']
+            )
+            
+            # Upload data directory (without .env sensitive files)
+            api.upload_folder(
+                folder_path='data',
+                repo_id=repo_id,
+                repo_type='space',
+                token=os.environ['HF_TOKEN']
+            )
+            
+            print('Files uploaded successfully')
+            
+        except Exception as e:
+            print(f'Upload error: {e}')
         
         # Set environment variables for the space
         try:
@@ -208,13 +198,11 @@ EOF
             except Exception as e2:
                 print(f'Alternative method failed: {e2}')
                 print('Please manually set GOOGLE_API_KEY in Space settings')
-        
-        print('README.md with configuration uploaded successfully')
         "
     
     - name: Wait for Space to build
       run: |
-        echo " Deployment initiated!"
-        echo " Your ZenAI Medical Chatbot will be available at:"
-        echo " https://huggingface.co/spaces/shravanramakunja/ZenAI"
-        echo " Please wait a few minutes for the Space to build and start..."
+        echo "🚀 Deployment initiated!"
+        echo "📱 Your ZenAI Medical Chatbot will be available at:"
+        echo "🌐 https://huggingface.co/spaces/shravanramakunja/ZenAI"
+        echo "⏳ Please wait a few minutes for the Space to build and start..."
