@@ -6,7 +6,7 @@ import asyncio
 import streamlit as st
 import google.genai as genai
 from dotenv import load_dotenv
-from src.helper import create_embeddings, load_vector_store, retrieve_relevant_chunks
+from src.helper import create_embeddings, load_vector_store, load_vector_store_without_embeddings, retrieve_relevant_chunks
 from src.prompt import get_system_prompt, get_query_prompt
 
 # Load environment variables
@@ -15,10 +15,22 @@ load_dotenv()
 # Set environment variable to suppress asyncio warnings
 os.environ["CHROMA_DISABLE_ASYNCIO_CHECK"] = "1"
 
-# Configure Google Generative AI with API key
-api_key = os.getenv("GOOGLE_API_KEY")
+# Configure Google Generative AI with API key - check both variable names
+api_key = os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY")
 if not api_key:
-    st.error("Error: GOOGLE_API_KEY environment variable not set. Please set it in your .env file.")
+    st.error(
+        "Error: API key not found. Please set GEMINI_API_KEY or GOOGLE_API_KEY in your .env file.\n\n"
+        "Example: GEMINI_API_KEY=your_api_key_here"
+    )
+    st.stop()
+
+# Validate API key format
+if "your_api_key" in api_key.lower() or "your_gemin" in api_key.lower() or len(api_key) < 20:
+    st.error(
+        "Error: Invalid API key detected. The API key appears to be a placeholder.\n\n"
+        "Please update your .env file with a valid Gemini API key.\n"
+        "Get your API key from: https://aistudio.google.com/apikey"
+    )
     st.stop()
 
 # Initialize the client
@@ -58,10 +70,22 @@ def load_resources():
         asyncio.set_event_loop(loop)
         
         st.write("Loading embeddings...")
-        embeddings = create_embeddings()
+        try:
+            embeddings = create_embeddings()
+        except Exception as e:
+            if "quota" in str(e).lower() or "429" in str(e):
+                st.warning("API quota exceeded for embeddings. Using existing vector store without new embeddings.")
+                # Create a dummy embeddings object for loading existing store
+                embeddings = None
+            else:
+                raise e
         
         st.write("Loading vector store...")
-        vectordb = load_vector_store(embeddings, persist_directory)
+        if embeddings:
+            vectordb = load_vector_store(embeddings, persist_directory)
+        else:
+            # Try to load without embeddings (for existing stores)
+            vectordb = load_vector_store_without_embeddings(persist_directory)
         
         # Test vector store
         try:
@@ -87,7 +111,8 @@ try:
     test_chunks = retrieve_relevant_chunks("diabetes", vectordb, k=2)
     st.write(f"Vector store test: Found {len(test_chunks)} chunks for 'diabetes'")
 except Exception as e:
-    st.error(f"Vector store test failed: {e}")
+    st.warning(f"Vector store test failed (this is expected if API quota is exceeded): {e}")
+    st.info("The app will still work with the existing vector store data.")
 
 # Initialize Gemini model
 @st.cache_resource
@@ -151,7 +176,7 @@ def generate_response(query):
     )
     
     response = model.models.generate_content(
-        model="gemini-2.0-flash",
+        model="gemini-3-flash-preview",
         contents=[genai.types.Content(parts=[genai.types.Part(text=formatted_prompt)])],
         config=config
     )

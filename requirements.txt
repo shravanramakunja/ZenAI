@@ -22,3 +22,5 @@ langchain-chroma>=0.1.0
 
 # PDF processing
 langchain[pdf]>=0.0.335
+# Local embeddings
+sentence-transformers>=2.2.2

@@ -13,10 +13,11 @@ from src.helper import (
 # Load environment variables
 load_dotenv()
 
-# Check if API key is set
-if not os.getenv("GOOGLE_API_KEY"):
-    print("Error: GOOGLE_API_KEY environment variable not set.")
-    print("Please set it in your .env file.")
+# Check if API key is set - check both variable names
+api_key = os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY")
+if not api_key:
+    print("Error: API key not found.")
+    print("Please set GEMINI_API_KEY or GOOGLE_API_KEY in your .env file.")
     sys.exit(1)
 
 def main():
