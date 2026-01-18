@@ -14,6 +14,10 @@ license: mit
 
 An intelligent medical assistant powered by Google Gemini 2.0 Flash and advanced RAG (Retrieval-Augmented Generation) technology that provides accurate, document-grounded answers to medical questions using a comprehensive internal medical reference.
 
+# Demo Video 
+
+https://github.com/user-attachments/assets/58993c8a-3deb-4bfd-b7ec-ed9bd3b32b91
+
 ## Project Overview
 
 This project implements a medical chatbot that:
